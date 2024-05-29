@@ -88,7 +88,7 @@ class Game(object):
             else:
                 nr_enemies_1_1 += 1
 
-        return (
+        return ((
             self.player.x,
             self.player.y,
             
@@ -99,7 +99,7 @@ class Game(object):
 
             self.player_shoot_cooldown == 0,
 
-        ), 0, False
+        ), 0, False)
 
     def step(self, action: tuple[int, int, int, int, int]):
         self.frame_iteration += 1
@@ -184,7 +184,7 @@ class Game(object):
 
                     self.player_shoot_cooldown == 0,
 
-        ), -1, True
+                ), -1, True
 
             # Enemy collision with bullet
             for bullet in self.bullet_list:
@@ -210,7 +210,7 @@ class Game(object):
 
                 self.player_shoot_cooldown == 0,
 
-        ), 1, True
+            ), 1, True
 
         # Check if player is out of bounds
         if self.player.x < 0 or self.player.right > SCREEN_WIDTH or self.player.y < 0 or self.player.bottom > SCREEN_HEIGHT:
@@ -225,7 +225,7 @@ class Game(object):
 
                 self.player_shoot_cooldown == 0,
 
-        ), -1, True
+            ), -1, True
 
         # --- End Update ---
 
@@ -263,7 +263,7 @@ class Game(object):
         # Update clock
         self.clock.tick(FPS)
 
-        return (
+        state = (
             self.player.x,
             self.player.y,
             
@@ -274,5 +274,7 @@ class Game(object):
 
             self.player_shoot_cooldown == 0,
 
-        ), 0, False
+        )
+
+        return state, 0, False
         

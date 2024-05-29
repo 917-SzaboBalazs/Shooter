@@ -48,7 +48,7 @@ class DQNAgent:
         if self.perform_training and self.steps_done % 1000 == 0:
             self.update_target_model()
             
-        return one_hot_encode(action, self.action_size)
+        return action
 
     def forward(self, state):
         with torch.no_grad():
