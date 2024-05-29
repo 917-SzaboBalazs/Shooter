@@ -1,1 +1,1 @@
-from ai_version.game import Game
+from game import Game

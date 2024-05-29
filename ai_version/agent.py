@@ -3,7 +3,7 @@ import random
 from torch import optim, nn
 import torch
 
-from ai_version.model import ReplayBuffer, DQN
+from model import ReplayBuffer, DQN
 
 
 class DQNAgent:
