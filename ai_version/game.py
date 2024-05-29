@@ -16,11 +16,11 @@ CAPTION = "Human Version"
 FPS = 60
 
 # Player dimensions
-PLAYER_SIZE = 50
+PLAYER_SIZE = 25
 PLAYER_SPEED = 5
 PLAYER_COLOR = RED
 PLAYER_START_X = SCREEN_WIDTH/2 - PLAYER_SIZE/2 - 50
-PLAYER_START_Y = SCREEN_HEIGHT - PLAYER_SIZE
+PLAYER_START_Y = SCREEN_HEIGHT/2 - PLAYER_SIZE/2
 
 # Bullet dimensions
 BULLET_SIZE = 10
@@ -29,7 +29,7 @@ BULLET_COLOR = BLUE
 BULLET_COOLDOWN = 30
 
 # Enemy dimensions
-ENEMY_SIZE = 50
+ENEMY_SIZE = 25
 ENEMY_COLOR = BLACK
 ENEMY_SPEED = 5
 
@@ -47,6 +47,9 @@ class Game(object):
         self.clock = pygame.time.Clock()
 
         self.reset()
+
+    def get_score(self):
+        return NUMBER_OF_ENEMIES - len(self.enemy_list)
 
     def reset(self):
         """
@@ -88,18 +91,9 @@ class Game(object):
             else:
                 nr_enemies_1_1 += 1
 
-        return ((
-            self.player.x,
-            self.player.y,
-            
-            nr_enemies_0_0,
-            nr_enemies_0_1,
-            nr_enemies_1_0,
-            nr_enemies_1_1,
+        state = self.get_state()
 
-            self.player_shoot_cooldown == 0,
-
-        ), 0, False)
+        return [state, 0, False]
 
     def step(self, action: tuple[int, int, int, int, int]):
         self.frame_iteration += 1
@@ -167,24 +161,15 @@ class Game(object):
             else:
                 nr_enemies_1_1 += 1
 
+        state = self.get_state()
+
         # Update enemy
         for enemy in self.enemy_list:
             enemy.y += ENEMY_SPEED
 
             # Enemy collision with player
             if enemy.colliderect(self.player):
-                return (
-                    self.player.x,
-                    self.player.y,
-                    
-                    nr_enemies_0_0,
-                    nr_enemies_0_1,
-                    nr_enemies_1_0,
-                    nr_enemies_1_1,
-
-                    self.player_shoot_cooldown == 0,
-
-                ), -1, True
+                return [state, -len(self.enemy_list), True]
 
             # Enemy collision with bullet
             for bullet in self.bullet_list:
@@ -199,39 +184,18 @@ class Game(object):
 
         # Check if all enemies are destroyed
         if len(self.enemy_list) == 0:
-            return (
-                self.player.x,
-                self.player.y,
-                
-                nr_enemies_0_0,
-                nr_enemies_0_1,
-                nr_enemies_1_0,
-                nr_enemies_1_1,
-
-                self.player_shoot_cooldown == 0,
-
-            ), 1, True
+            return [state, 100, True]
 
         # Check if player is out of bounds
         if self.player.x < 0 or self.player.right > SCREEN_WIDTH or self.player.y < 0 or self.player.bottom > SCREEN_HEIGHT:
-            return (
-                self.player.x,
-                self.player.y,
-                
-                nr_enemies_0_0,
-                nr_enemies_0_1,
-                nr_enemies_1_0,
-                nr_enemies_1_1,
-
-                self.player_shoot_cooldown == 0,
-
-            ), -1, True
+            return [state, -100, True]
 
         # --- End Update ---
 
 
 
         # --- Draw ---
+        
 
         # Background
         self.screen.fill(WHITE)
@@ -251,10 +215,11 @@ class Game(object):
         font = pygame.font.Font(None, 36)
         text = font.render("Number of enemies: " + str(len(self.enemy_list)), True, BLACK)
         text_rect = text.get_rect(center=(SCREEN_WIDTH/2, 20))
-        self.screen.blit(text, text_rect)
+        self.screen.blit(text, text_rect)        
 
         # Update display
         pygame.display.flip()
+        
 
         # --- End Draw ---
 
@@ -263,18 +228,26 @@ class Game(object):
         # Update clock
         self.clock.tick(FPS)
 
-        state = (
-            self.player.x,
-            self.player.y,
-            
-            nr_enemies_0_0,
-            nr_enemies_0_1,
-            nr_enemies_1_0,
-            nr_enemies_1_1,
+        return [state, 1, False]
+    
 
-            self.player_shoot_cooldown == 0,
+    def get_state(self):
+        # left Ahead Right
+        enemies_position = [0, 0, 0]
 
-        )
 
-        return state, 0, False
+        for enemy in self.enemy_list:
+            if self.player.left - enemy.right < 20 and abs(self.player.top - enemy.top) < 100:
+                enemies_position[0] = 1
+            if enemy.left - self.player.right < 20 and abs(self.player.top - enemy.top) < 100:
+                enemies_position[2] = 1
+            if abs(self.player.left - enemy.left) < 100 and self.player.top - enemy.bottom < 100:
+                enemies_position[1] = 1
+
+
+
+        state = [self.player.x, self.player.y] + enemies_position + [len(self.enemy_list) ,self.player_shoot_cooldown == 0]
+
+
+        return state
         

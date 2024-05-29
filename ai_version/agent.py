@@ -8,8 +8,8 @@ from model import ReplayBuffer, DQN
 
 
 class DQNAgent:
-    def __init__(self, state_size, action_size, hidden_dim=64, lr=1e-3, gamma=0.99, buffer_capacity=10000, batch_size=64,
-                 epsilon_start=1.0, epsilon_end=0.01, epsilon_decay=500, train=False):
+    def __init__(self, state_size, action_size, hidden_dim=64, lr=0.01, gamma=0.99, buffer_capacity=10000, batch_size=64,
+                 epsilon_start=0.8, epsilon_end=0.01, epsilon_decay=5000, train=False):
         self.state_size = state_size
         self.action_size = action_size
         self.gamma = gamma
@@ -45,7 +45,7 @@ class DQNAgent:
         if self.perform_training:
             self.train()
 
-        if self.perform_training and self.steps_done % 1000 == 0:
+        if self.perform_training and self.steps_done % 1 == 0:
             self.update_target_model()
             
         return action
@@ -84,3 +84,48 @@ class DQNAgent:
 
     def update_target_model(self):
         self.target_model.load_state_dict(self.model.state_dict())
+
+
+
+import numpy as np
+import random
+
+class QLearningAgent:
+    def __init__(self, state_size, action_size, learning_rate=0.1, discount_factor=0.99, epsilon=1.0, epsilon_decay=0.8, epsilon_min=0.01):
+        self.state_size = state_size
+        self.action_size = action_size
+        self.learning_rate = learning_rate
+        self.discount_factor = discount_factor
+        self.epsilon = epsilon
+        self.epsilon_decay = epsilon_decay
+        self.epsilon_min = epsilon_min
+        self.q_table = np.zeros((state_size, action_size))
+
+    def get_action(self, state):
+        if np.random.rand() < self.epsilon:
+            return random.choice(range(self.action_size))
+        else:
+            return np.argmax(self.q_table[state])
+
+    def update_q_table(self, state, action, reward, next_state):
+        best_next_action = np.argmax(self.q_table[next_state])
+        td_target = reward + self.discount_factor * self.q_table[next_state][best_next_action]
+        td_error = td_target - self.q_table[state][action]
+        self.q_table[state][action] += self.learning_rate * td_error
+        
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+
+# Example usage:
+# state_size = 10  # example state size
+# action_size = 4  # example action size
+# agent = QLearningAgent(state_size, action_size)
+
+# # Simulate an episode (example values)
+# state = 0
+# for _ in range(100):
+#     action = agent.get_action(state)
+#     next_state = (state + action) % state_size
+#     reward = 1  # example reward
+#     agent.update_q_table(state, action, reward, next_state)
+#     state = next_state
