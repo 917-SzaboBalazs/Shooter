@@ -1,12 +1,6 @@
 import pygame
 import random
 
-class Direction:
-    UP = 0
-    DOWN = 1
-    LEFT = 2
-    RIGHT = 3
-
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -55,8 +49,28 @@ class Game(object):
 
         self.reset()
 
-    def reset():
-        pass
+    def reset(self):
+        """
+        Reset the game.
+        """
 
-    def step(action):
+        # Setup
+        self.game_over = False
+        self.frame_iteration = 0
+        
+        # Player
+        self.player = pygame.Rect(PLAYER_START_X, PLAYER_START_Y, PLAYER_SIZE, PLAYER_SIZE)
+        self.player_shoot_cooldown = 0
+
+        # Bullets
+        self.bullet_list = []
+
+        # Enemies
+        self.enemy_list = []
+
+        for _ in range(NUMBER_OF_ENEMIES):
+            enemy = pygame.Rect(random.randint(0, SCREEN_WIDTH - ENEMY_SIZE), random.randint(-SCREEN_HEIGHT, -ENEMY_SIZE - 50), ENEMY_SIZE, ENEMY_SIZE)
+            self.enemy_list.append(enemy)
+
+    def step(self, action):
         pass
