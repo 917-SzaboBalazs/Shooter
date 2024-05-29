@@ -3,6 +3,7 @@ import random
 from torch import optim, nn
 import torch
 
+from utils import one_hot_encode
 from model import ReplayBuffer, DQN
 
 
@@ -47,7 +48,7 @@ class DQNAgent:
         if self.perform_training and self.steps_done % 1000 == 0:
             self.update_target_model()
             
-        return action
+        return one_hot_encode(action, self.action_size)
 
     def forward(self, state):
         with torch.no_grad():
