@@ -70,6 +70,37 @@ class Game(object):
             enemy = pygame.Rect(random.randint(0, SCREEN_WIDTH - ENEMY_SIZE), random.randint(-SCREEN_HEIGHT, -ENEMY_SIZE - 50), ENEMY_SIZE, ENEMY_SIZE)
             self.enemy_list.append(enemy)
 
+        # Split the screen into 4 quadrants
+        # Calc number of enemies in each quadrant
+
+        nr_enemies_0_0 = 0
+        nr_enemies_0_1 = 0
+        nr_enemies_1_0 = 0
+        nr_enemies_1_1 = 0
+
+        for enemy in self.enemy_list:
+            if enemy.x < SCREEN_WIDTH/2 and enemy.y < SCREEN_HEIGHT/2:
+                nr_enemies_0_0 += 1
+            elif enemy.x < SCREEN_WIDTH/2 and enemy.y >= SCREEN_HEIGHT/2:
+                nr_enemies_0_1 += 1
+            elif enemy.x >= SCREEN_WIDTH/2 and enemy.y < SCREEN_HEIGHT/2:
+                nr_enemies_1_0 += 1
+            else:
+                nr_enemies_1_1 += 1
+
+        return (
+            self.player.x,
+            self.player.y,
+            
+            nr_enemies_0_0,
+            nr_enemies_0_1,
+            nr_enemies_1_0,
+            nr_enemies_1_1,
+
+            self.player_shoot_cooldown == 0,
+
+        ), 0, False
+
     def step(self, action: tuple[int, int, int, int, int]):
         self.frame_iteration += 1
 
@@ -118,13 +149,42 @@ class Game(object):
         if self.player_shoot_cooldown > 0:
             self.player_shoot_cooldown -= 1
 
+        # Split the screen into 4 quadrants
+        # Calc number of enemies in each quadrant
+
+        nr_enemies_0_0 = 0
+        nr_enemies_0_1 = 0
+        nr_enemies_1_0 = 0
+        nr_enemies_1_1 = 0
+
+        for enemy in self.enemy_list:
+            if enemy.x < SCREEN_WIDTH/2 and enemy.y < SCREEN_HEIGHT/2:
+                nr_enemies_0_0 += 1
+            elif enemy.x < SCREEN_WIDTH/2 and enemy.y >= SCREEN_HEIGHT/2:
+                nr_enemies_0_1 += 1
+            elif enemy.x >= SCREEN_WIDTH/2 and enemy.y < SCREEN_HEIGHT/2:
+                nr_enemies_1_0 += 1
+            else:
+                nr_enemies_1_1 += 1
+
         # Update enemy
         for enemy in self.enemy_list:
             enemy.y += ENEMY_SPEED
 
             # Enemy collision with player
             if enemy.colliderect(self.player):
-                return [], -1, True
+                return (
+                    self.player.x,
+                    self.player.y,
+                    
+                    nr_enemies_0_0,
+                    nr_enemies_0_1,
+                    nr_enemies_1_0,
+                    nr_enemies_1_1,
+
+                    self.player_shoot_cooldown == 0,
+
+        ), -1, True
 
             # Enemy collision with bullet
             for bullet in self.bullet_list:
@@ -139,11 +199,33 @@ class Game(object):
 
         # Check if all enemies are destroyed
         if len(self.enemy_list) == 0:
-            return [], 1, True
+            return (
+                self.player.x,
+                self.player.y,
+                
+                nr_enemies_0_0,
+                nr_enemies_0_1,
+                nr_enemies_1_0,
+                nr_enemies_1_1,
+
+                self.player_shoot_cooldown == 0,
+
+        ), 1, True
 
         # Check if player is out of bounds
         if self.player.x < 0 or self.player.right > SCREEN_WIDTH or self.player.y < 0 or self.player.bottom > SCREEN_HEIGHT:
-            return [], -1, True
+            return (
+                self.player.x,
+                self.player.y,
+                
+                nr_enemies_0_0,
+                nr_enemies_0_1,
+                nr_enemies_1_0,
+                nr_enemies_1_1,
+
+                self.player_shoot_cooldown == 0,
+
+        ), -1, True
 
         # --- End Update ---
 
@@ -181,25 +263,7 @@ class Game(object):
         # Update clock
         self.clock.tick(FPS)
 
-        # Split the screen into 4 quadrants
-        # Calc number of enemies in each quadrant
-
-        nr_enemies_0_0 = 0
-        nr_enemies_0_1 = 0
-        nr_enemies_1_0 = 0
-        nr_enemies_1_1 = 0
-
-        for enemy in self.enemy_list:
-            if enemy.x < SCREEN_WIDTH/2 and enemy.y < SCREEN_HEIGHT/2:
-                nr_enemies_0_0 += 1
-            elif enemy.x < SCREEN_WIDTH/2 and enemy.y >= SCREEN_HEIGHT/2:
-                nr_enemies_0_1 += 1
-            elif enemy.x >= SCREEN_WIDTH/2 and enemy.y < SCREEN_HEIGHT/2:
-                nr_enemies_1_0 += 1
-            else:
-                nr_enemies_1_1 += 1
-
-        return [
+        return (
             self.player.x,
             self.player.y,
             
@@ -210,5 +274,5 @@ class Game(object):
 
             self.player_shoot_cooldown == 0,
 
-        ], 0, False
+        ), 0, False
         

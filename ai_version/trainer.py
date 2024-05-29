@@ -12,8 +12,10 @@ def main():
         done = False
 
         while not done:
+            print(state)
             action = agent.get_action(state)
             next_state, reward, done = game.step(action)
+            
             agent.replay_buffer.push(state, action, reward, next_state, done)
             state = next_state
 
