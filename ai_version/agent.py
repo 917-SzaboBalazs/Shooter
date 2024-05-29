@@ -7,15 +7,15 @@ from model import ReplayBuffer, DQN
 
 
 class DQNAgent:
-    def __init__(self, state_dim, action_dim, hidden_dim=64, lr=1e-3, gamma=0.99, buffer_capacity=10000, batch_size=64,
+    def __init__(self, state_size, action_size, hidden_dim=64, lr=1e-3, gamma=0.99, buffer_capacity=10000, batch_size=64,
                  epsilon_start=1.0, epsilon_end=0.01, epsilon_decay=500, train=False):
-        self.state_dim = state_dim
-        self.action_dim = action_dim
+        self.state_size = state_size
+        self.action_size = action_size
         self.gamma = gamma
         self.batch_size = batch_size
 
-        self.model = DQN(state_dim, action_dim, hidden_dim)
-        self.target_model = DQN(state_dim, action_dim, hidden_dim)
+        self.model = DQN(state_size, action_size, hidden_dim)
+        self.target_model = DQN(state_size, action_size, hidden_dim)
         self.target_model.load_state_dict(self.model.state_dict())
         self.target_model.eval()
 
@@ -37,7 +37,7 @@ class DQNAgent:
                 q_values = self.model(state)
                 action = q_values.max(1)[1].item()
         else:
-            action = random.randrange(self.action_dim)
+            action = random.randrange(self.action_size)
 
         self.epsilon = max(self.epsilon_end, self.epsilon - (1 / self.epsilon_decay))
 
@@ -46,6 +46,7 @@ class DQNAgent:
 
         if self.perform_training and self.steps_done % 1000 == 0:
             self.update_target_model()
+            
         return action
 
     def forward(self, state):

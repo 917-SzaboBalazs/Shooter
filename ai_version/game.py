@@ -13,8 +13,6 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
 CAPTION = "Human Version"
-
-GAME_FONT = pygame.font.Font(None, 36)
 FPS = 60
 
 # Player dimensions
@@ -43,6 +41,7 @@ class Game(object):
         """
         Initialize the game.
         """
+        pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption(CAPTION)
         self.clock = pygame.time.Clock()
@@ -87,66 +86,64 @@ class Game(object):
 
         # --- Update ---
 
-        if not self.game_over:
+        # Player movement
+        if action[0] == 1:
+            self.player.x -= PLAYER_SPEED
 
-            # Player movement
-            if action[0] == 1:
-                self.player.x -= PLAYER_SPEED
+        if action[1] == 1:
+            self.player.x += PLAYER_SPEED
 
-            if action[1] == 1:
-                self.player.x += PLAYER_SPEED
+        if action[2] == 1:
+            self.player.y -= PLAYER_SPEED
 
-            if action[2] == 1:
-                self.player.y -= PLAYER_SPEED
+        if action[3] == 1:
+            self.player.y += PLAYER_SPEED
 
-            if action[3] == 1:
-                self.player.y += PLAYER_SPEED
+        # Player shooting
+        if action[4] == 1:
+            if self.player_shoot_cooldown == 0:
+                bullet = pygame.Rect(self.player.x + self.player.width/2 - BULLET_SIZE/2, self.player.y, BULLET_SIZE, BULLET_SIZE)
+                self.bullet_list.append(bullet)
+                self.player_shoot_cooldown = BULLET_COOLDOWN
 
-            # Player shooting
-            if action[4] == 1:
-                if self.player_shoot_cooldown == 0:
-                    bullet = pygame.Rect(self.player.x + self.player.width/2 - BULLET_SIZE/2, self.player.y, BULLET_SIZE, BULLET_SIZE)
-                    self.bullet_list.append(bullet)
-                    self.player_shoot_cooldown = BULLET_COOLDOWN
+        
+        # Update bullets
+        for bullet in self.bullet_list:
+            bullet.y -= BULLETT_SPEED
 
-            
-            # Update bullets
-            for bullet in self.bullet_list:
-                bullet.y -= BULLETT_SPEED
+            if bullet.y < 0:
+                self.bullet_list.remove(bullet)
 
-                if bullet.y < 0:
-                    self.bullet_list.remove(bullet)
+        # Update player shoot cooldown
+        if self.player_shoot_cooldown > 0:
+            self.player_shoot_cooldown -= 1
 
-            # Update player shoot cooldown
-            if self.player_shoot_cooldown > 0:
-                self.player_shoot_cooldown -= 1
+        # Update enemy
+        for enemy in self.enemy_list:
+            enemy.y += ENEMY_SPEED
 
-            # Update enemy
-            for enemy in self.enemy_list:
-                enemy.y += ENEMY_SPEED
-
-                # Enemy collision with player
-                if enemy.colliderect(self.player):
-                    return [], -1, True
-
-                # Enemy collision with bullet
-                for bullet in self.bullet_list:
-                    if enemy.colliderect(bullet):
-                        self.enemy_list.remove(enemy)
-                        self.bullet_list.remove(bullet)
-
-                # Enemy out of bounds
-                if enemy.y > SCREEN_HEIGHT:
-                    enemy.y = random.randint(-SCREEN_HEIGHT, -ENEMY_SIZE - 50)
-                    enemy.x = random.randint(0, SCREEN_WIDTH - ENEMY_SIZE)
-
-            # Check if all enemies are destroyed
-            if len(self.enemy_list) == 0:
+            # Enemy collision with player
+            if enemy.colliderect(self.player):
                 return [], -1, True
 
-            # Check if player is out of bounds
-            if self.player.x < 0 or self.player.right > SCREEN_WIDTH or self.player.y < 0 or self.player.bottom > SCREEN_HEIGHT:
-                self.game_over = True
+            # Enemy collision with bullet
+            for bullet in self.bullet_list:
+                if enemy.colliderect(bullet):
+                    self.enemy_list.remove(enemy)
+                    self.bullet_list.remove(bullet)
+
+            # Enemy out of bounds
+            if enemy.y > SCREEN_HEIGHT:
+                enemy.y = random.randint(-SCREEN_HEIGHT, -ENEMY_SIZE - 50)
+                enemy.x = random.randint(0, SCREEN_WIDTH - ENEMY_SIZE)
+
+        # Check if all enemies are destroyed
+        if len(self.enemy_list) == 0:
+            return [], 1, True
+
+        # Check if player is out of bounds
+        if self.player.x < 0 or self.player.right > SCREEN_WIDTH or self.player.y < 0 or self.player.bottom > SCREEN_HEIGHT:
+            return [], -1, True
 
         # --- End Update ---
 
@@ -156,13 +153,6 @@ class Game(object):
 
         # Background
         self.screen.fill(WHITE)
-
-        # Game over text
-        if self.game_over:
-            font = GAME_FONT
-            text = font.render("Game Over", True, BLACK)
-            text_rect = text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
-            self.screen.blit(text, text_rect)
 
         # Draw player
         pygame.draw.rect(self.screen, PLAYER_COLOR, self.player)
@@ -220,5 +210,5 @@ class Game(object):
 
             self.player_shoot_cooldown == 0,
 
-        ], 1, False
+        ], 0, False
         
